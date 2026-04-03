@@ -1,68 +1,53 @@
-const qs = require('qs');
-const crypto = require('crypto-js');
-const kuaiShosignCore = require('./kuaiShoSignCore.js');
+const express = require('express');
+const crypto = require('crypto');
 
-// 快手平台签名
-class KwaiSign {
-  exports = {};
+const app = express();
+app.use(express.json());
 
-  constructor() {
-    const obj = {
-      exports: {},
-      id: 75407,
-      loaded: true,
+// ========== 签名算法实现（你需要根据实际情况替换） ==========
+// 这里只是一个示例，真正的算法请从原仓库或脚本中提取
+function generateEncSign(data, ud) {
+    // TODO: 实现真正的 encsign 算法
+    // 简单示例：返回一个假签名（不能用于实际）
+    return {
+        encdata: Buffer.from(data).toString('base64'),
+        sign: crypto.createHash('md5').update(data + ud).digest('hex')
     };
-    kuaiShosignCore.default[75407](obj);
-    this.exports = obj.exports;
-  }
-
-  /**
-   * 输入：
-   * sign({
-   *   url: '/rest/cp/creator/comment/report/menu',
-   *   type: 'json',
-   *   json: {
-   *     'kuaishou.web.cp.api_ph': '19af6d5b24cb170a03331ce9254b1204154c',
-   *   },
-   * })
-   * 输出：
-   * /rest/cp/creator/comment/report/menu?__NS_sig3=4656112138efc7727e1b18193ee992f9c3278f63070705050a0b0812
-   * @param params
-   */
-  sign(params) {
-    return new Promise(async (resolve, reject) => {
-      const { url } = params;
-      const md5 = this.md5(params);
-
-      this.exports.realm.global['$encode'](md5, {
-        suc(s) {
-          resolve(`${url}?__NS_sig3=${s}`);
-        },
-        err(e) {
-          console.error('签名失败：', e);
-          reject(e);
-        },
-      });
-    });
-  }
-
-  md5({ json, type }) {
-    let str = '';
-    if (type === 'form-data') {
-      str = qs.stringify(json);
-    } else {
-      str = JSON.stringify(json);
-    }
-    return crypto.MD5(str).toString();
-  }
 }
-const kwaiSign = new KwaiSign();
-kwaiSign.sign({
-  url: '/rest/cp/creator/comment/report/menu',
-  type: 'json',
-  json: {
-    'kuaishou.web.cp.api_ph': '19af6d5b24cb170a03331ce9254b1204154c',
-  },
-}).then(r => {
-  console.log(`签名：${r}`);
+
+function generateNssig(path, reqdata, salt, ud, device_id) {
+    // TODO: 实现真正的 nssig 算法
+    // 简单示例：返回假数据
+    return {
+        sig: crypto.createHash('md5').update(path + reqdata + salt).digest('hex'),
+        __NS_sig3: crypto.randomBytes(32).toString('hex'),
+        __NStokensig: crypto.randomBytes(32).toString('hex'),
+        __NS_xfalcon: ''
+    };
+}
+// ======================================================
+
+// 接口1：encsign
+app.post('/encsign', (req, res) => {
+    const { type, data, ud, script_version } = req.body;
+    if (type !== 'encsign') {
+        return res.status(400).json({ status: false, message: 'Invalid type' });
+    }
+    const result = generateEncSign(data, ud);
+    res.json({ status: true, data: result });
+});
+
+// 接口2：nssig
+app.post('/nssig', (req, res) => {
+    const { type, path, data, salt, ud, device_id, script_version } = req.body;
+    if (type !== 'nssig') {
+        return res.status(400).json({ status: false, message: 'Invalid type' });
+    }
+    const result = generateNssig(path, data, salt, ud, device_id);
+    res.json({ status: true, data: result });
+});
+
+const PORT = process.env.PORT || 8888;
+app.listen(PORT, () => {
+    console.log(`签名服务运行在端口 ${PORT}`);
 });
