@@ -1,5 +1,5 @@
 {
-  "name": "kwai-ns-sig3"，
+  "name": "kwai-ns-sig3",
   "version": "1.0.0",
   "scripts": {
     "start": "node index.js"
