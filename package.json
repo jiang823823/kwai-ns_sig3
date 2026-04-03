@@ -1,15 +1,10 @@
 {
-  "name": "kwai-ns_sig3",
+  "name": "kwai-ns-sig3"，
   "version": "1.0.0",
-  "description": "快手 web端 ns_sig3",
+  "description": "快手签名服务",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "crypto-js": "^4.2.0",
-    "qs": "^6.14.0"
-  }
+  "dependencies": {}
 }
